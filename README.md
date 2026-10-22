@@ -1,2 +1,2 @@
 # Pigritia
-Open-weight AI  as Slow and Steady.
+Experience AI core but slow and steady
