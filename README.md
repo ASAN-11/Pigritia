@@ -1,2 +1,2 @@
 # Pigritia
-Experience AI core but slow and steady
+Experience AI core but slow and steady.
