@@ -1,6 +1,6 @@
 # Pigritia
 
-**Do less. Locally.**
+**Experience AI core but slow and steady.**
 
 Pigritia is a small set of lazy-day helpers that run entirely on your own machine. It is a single HTML file that talks to [Ollama](https://ollama.com) and an open-weight [Gemma](https://ai.google.dev/gemma) model. There is no backend, no account, no build step and no API key. Your messages, photos and file names never leave your computer.
 
