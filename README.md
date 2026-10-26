@@ -4,7 +4,9 @@
 
 Pigritia is a small set of lazy-day helpers that run entirely on your own machine. It is a single HTML file that talks to [Ollama](https://ollama.com) and an open-weight [Gemma](https://ai.google.dev/gemma) model. There is no backend, no account, no build step and no API key. Your messages, photos and file names never leave your computer.
 
-The name comes from the Latin *pigritia*, meaning sloth, in the laziness sense. It was built for the DEV "Slow and Steady" open-source AI challenge, with one rule: make the model do the work so you don't have to.
+Built for the [Hacktoberfest Open-Source AI Challenge Week 3: Slow and Steady](https://dev.to/challenges/hacktoberfest-week3-2026-10-19)
+
+![pigritia screenshot](screenshot.png)
 
 ---
 
