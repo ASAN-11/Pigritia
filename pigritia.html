@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pigritia — do less, locally</title>
+<style>
+:root{--canopy:#16241d;--leaf:#2c4637;--moss:#7c9a62;--fur:#cdbb9e;--mist:#eef1ea;--ink:#1a231e;--hib:#d4506f;--line:#cfd6c8;--card:#fbfcf9}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{display:flex;font:17px/1.65 "Inter", "Segoe UI", sans-serif;background:var(--mist);color:var(--ink)}
+h1,h2,h3{font-weight:600;line-height:1.15;margin:0 0 .4em;letter-spacing:-.01em}
+:focus-visible{outline:3px solid var(--hib);outline-offset:2px}
+nav{width:230px;flex:none;background:var(--canopy);color:#dfe7da;display:flex;flex-direction:column;padding:20px 12px;gap:4px;height:100vh;position:sticky;top:0;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 10px 18px;color:var(--fur)}
+.brand svg{width:44px;height:44px;flex:none}
+.brand b{font-weight:600;font-size:1.5rem;color:#f1f4ec}
+nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;color:inherit;text-decoration:none;cursor:pointer;font-size:.95rem}
+nav a svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+nav a:hover{background:#ffffff14}
+nav a.on{background:var(--moss);color:#0f1a13;font-weight:600}
+.status{margin-top:auto;font-size:.8rem;padding:10px 12px;border-top:1px solid #ffffff22;color:#a9b8a4}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#8a6;margin-right:6px;background:#b55}
+.dot.ok{background:#7fd36b}
+main{flex:1;min-width:0;height:100vh;overflow-y:auto}
+section{display:none}
+section.on{display:block}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:30px;align-items:center;padding:56px 44px;background:var(--canopy);color:#fff}
+.hero h1{font-size:clamp(2.2rem,5vw,3.5rem)}
+.hero p{font-size:1.15rem;color:#d3ddcd;max-width:48ch;margin:0}
+.hero svg{width:100%;max-width:330px;justify-self:center;color:var(--fur)}
+.band{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:28px 44px;background:var(--leaf);color:#fff;border-bottom:4px solid var(--moss)}
+.band h2{font-size:2rem;margin:0}.band p{margin:.2em 0 0;color:#d6e1d0}
+.band svg{width:62px;height:62px;color:var(--fur);flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);margin-top:26px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+.cols>div{padding:22px;border-right:1px solid var(--line)}.cols>div:last-child{border:0}
+.cols svg{width:44px;height:44px;color:var(--leaf);fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;margin-bottom:8px}
+.cols h3{font-size:1.1rem}.cols p{margin:0;font-size:.95rem;color:#4b5a50}
+.pill{display:inline-block;padding:2px 12px;border-radius:99px;font-weight:600;font-size:.85rem;color:#fff;background:var(--moss)}
+.pill.urgent{background:var(--hib)}.pill.low{background:#8a948b}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.body{padding:32px 44px 60px;max-width:980px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-top:22px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.tile:hover{border-color:var(--moss)}
+.tile h3{font-size:1.15rem}.tile p{margin:0;font-size:.92rem;color:#4b5a50}
+.pane{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px}
+label{display:block;font-weight:600;font-size:.9rem;margin:12px 0 4px}
+textarea,input[type=text],input[type=url],select{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+textarea{min-height:170px;resize:vertical}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+button.b{font:inherit;font-weight:600;padding:10px 18px;border-radius:10px;border:0;background:var(--leaf);color:#fff;cursor:pointer}
+button.b:hover{background:#1f3529}
+button.b.alt{background:transparent;color:var(--leaf);border:1px solid var(--leaf)}
+button.b.hot{background:var(--hib)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.out{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;min-height:80px;margin-top:14px;font-size:1rem;line-height:1.65}
+.out.story{font-size:1.1rem}
+.err{color:#a3223f;font-weight:600}
+.hint{font-size:.85rem;color:#5b695f}
+.chk{display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)}
+.chk input{width:20px;height:20px;accent-color:var(--leaf)}
+.chk input:checked+span{text-decoration:line-through;opacity:.55}
+img.prev{max-width:100%;max-height:260px;border-radius:10px;margin-top:12px;display:none}
+table{width:100%;border-collapse:collapse;font-size:.88rem;margin-top:14px}
+td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;word-break:break-all}
+button,input,select,textarea{font-family:inherit}
+code{font-family:ui-monospace,Consolas,monospace;background:#e3e9dd;padding:1px 6px;border-radius:5px;font-size:.88em}
+.why li{margin:.4em 0}
+@media(max-width:760px){.hero,.cols,.cols2{grid-template-columns:1fr}.cols>div{border-right:0;border-bottom:1px solid var(--line)}.band{padding:22px 20px}.hero{padding:36px 20px}nav{width:68px}.brand b,nav a span,.status span{display:none}.brand{padding:4px 8px 14px}.body{padding-left:20px;padding-right:20px}}
+@media(prefers-reduced-motion:no-preference){.hero .sw{animation:sway 7s ease-in-out infinite;transform-origin:32px 12px}@keyframes sway{50%{transform:rotate(3deg)}}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="sloth" viewBox="0 0 64 64">
+      <path d="M2 12 H62"/>
+      <path d="M14 12 V22 M50 12 V22"/>
+      <path d="M14 22 q-3 4 0 8 M50 22 q3 4 0 8"/>
+      <ellipse cx="32" cy="38" rx="17" ry="15"/>
+      <path d="M20 33 q3 -6 8 -3 q-2 8 -8 3 Z M44 33 q-3 -6 -8 -3 q2 8 8 3 Z"/>
+      <circle cx="24.5" cy="33" r="1.4" fill="currentColor"/><circle cx="39.5" cy="33" r="1.4" fill="currentColor"/>
+      <path d="M30 39 h4 l-2 2.5 Z"/>
+      <path d="M27.5 45 q4.5 3 9 0"/>
+      <path d="M22 52 q10 6 20 0"/>
+    </symbol></svg>
+<nav aria-label="Main">
+  <div class="brand">
+    <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#sloth"/></svg>
+    <b>Pigritia</b>
+  </div>
+  <a data-go="home" class="on"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg><span>Home</span></a>
+  <a data-go="auto"><svg viewBox="0 0 24 24"><path d="M3 11L21 3l-5 18-5-7-5 2z"/><path d="M21 3L11 14"/></svg><span>Autopilot</span></a>
+  <a data-go="fridge"><svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M6 10h12M9 5v2M9 13v3"/></svg><span>Fridge list</span></a>
+  <a data-go="story"><svg viewBox="0 0 24 24"><path d="M20 14A8 8 0 0110 4a8 8 0 1010 10z"/></svg><span>Wind down</span></a>
+  <a data-go="tidy"><svg viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3z"/></svg><span>File tidier</span></a>
+  <a data-go="setup"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><span>Setup</span></a>
+  <div class="status"><i class="dot" id="dot"></i><span id="stat">Checking Ollama…</span></div>
+</nav>
+
+<main>
+<!-- HOME -->
+<section id="home" class="on">
+  <div class="hero">
+    <div>
+      <h1>Let the model do the climbing.</h1>
+      <p>Pigritia is a set of lazy little helpers that run on Gemma through Ollama. Your messages, photos and files never leave this machine.</p>
+    </div>
+    <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M-2 12H66"/>
+      <path d="M6 12q-3 9 4 14q3-8-4-14zM56 12q3 9-4 14q-3-8 4-14z"/>
+      <g class="sw"><use href="#sloth"/></g>
+    </svg>
+  </div>
+  <div class="body">
+    <h2>Pick a task and walk away</h2>
+    <div class="grid">
+      <button class="tile" data-go="auto"><h3>Autopilot</h3><p>Paste an email, meeting or chat. Get tasks, a calendar file and a drafted reply.</p></button>
+      <button class="tile" data-go="fridge"><h3>Fridge to groceries</h3><p>Photo of your fridge in, shopping checklist out.</p></button>
+      <button class="tile" data-go="story"><h3>Wind down</h3><p>A calm bedtime story, read aloud, with rain or ocean sound.</p></button>
+      <button class="tile" data-go="tidy"><h3>File tidier</h3><p>Messy file names in, a rename-and-sort script out.</p></button>
+    </div>
+    <div class="cols">
+      <div><svg viewBox="0 0 48 48"><rect x="6" y="8" width="36" height="26" rx="3"/><path d="M16 42h16M24 34v8"/></svg><h3>Bring the mess</h3><p>Paste text, drop a photo or pick files. Nothing is uploaded anywhere.</p></div>
+      <div><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="8"/><path d="M24 4v6M24 38v6M4 24h6M38 24h6M10 10l4 4M34 34l4 4M38 10l-4 4M14 34l-4 4"/></svg><h3>Gemma thinks locally</h3><p>Ollama runs the model on your own hardware, offline if you like.</p></div>
+      <div><svg viewBox="0 0 48 48"><path d="M8 25l10 10L40 13"/></svg><h3>You just approve</h3><p>Review the result, copy it or download the file. Then go back to napping.</p></div>
+    </div>
+    <div class="pane why" style="margin-top:22px">
+      <h3>Why open models here</h3>
+      <ul>
+        <li><b>Offline.</b> Gemma runs through Ollama on your own hardware. No connection needed after the model is pulled.</li>
+        <li><b>Private.</b> Group chats and fridge photos stay on this machine.</li>
+        <li><b>Free.</b> No per-token bill. Set it up once, use it forever.</li>
+        <li><b>Swappable.</b> Change the model in Setup. Any model Ollama can run works here.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- AUTOPILOT -->
+<section id="auto">
+  <div class="band"><div><h2>Autopilot</h2><p>Paste anything messy. Get what matters, what to do, and a reply.</p></div><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M6 30L58 8 44 56 30 40 20 46 22 32z"/><path d="M22 32L58 8"/></svg></div>
+  <div class="body">
+    <div class="pane">
+      <label for="pIn">Paste an email thread, meeting notes or a group chat</label>
+      <textarea id="pIn" placeholder="Paste text here, or load a .txt file below"></textarea>
+      <div class="row">
+        <input type="file" id="pFile" accept=".txt,.log,.md,.eml" aria-label="Load a text file">
+        <select id="pTone" aria-label="Reply tone" style="width:auto"><option>Friendly</option><option>Professional</option><option>Short and direct</option></select>
+        <button class="b" id="pGo">Run autopilot</button><button class="b alt" id="pStop" disabled>Stop</button>
+      </div>
+      <p class="hint" id="pMsg"></p>
+    </div>
+    <div id="pRes" style="display:none">
+      <div class="cols2">
+        <div class="pane"><h3>Summary <span class="pill" id="pPri"></span></h3><div id="pSum"></div></div>
+        <div class="pane"><h3>Waiting on your answer</h3><div id="pQ"></div></div>
+      </div>
+      <div class="pane"><h3>Tasks</h3><div id="pTasks"></div>
+        <div class="row"><button class="b alt" id="pIcs">Download calendar (.ics)</button><button class="b alt" id="pMd">Copy as checklist</button></div>
+      </div>
+      <div class="pane"><h3>Drafted reply</h3><textarea id="pReply" style="min-height:150px"></textarea>
+        <div class="row"><button class="b" id="pCopy">Copy reply</button></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FRIDGE -->
+<section id="fridge">
+  <div class="band"><div><h2>Fridge to groceries</h2><p>Stop standing there with the door open.</p></div><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="16" y="6" width="32" height="52" rx="4"/><path d="M16 24h32M23 13v6M23 31v10"/></svg></div>
+  <div class="body">
+    <div class="pane">
+      <label for="fFile">Photo of your fridge or pantry</label>
+      <input type="file" id="fFile" accept="image/*">
+      <img class="prev" id="fPrev" alt="Fridge preview">
+      <label for="fNote">What are you cooking this week? (optional)</label>
+      <input type="text" id="fNote" placeholder="e.g. pasta twice, a veggie curry, breakfast for 2">
+      <div class="row"><button class="b" id="fGo">Make my list</button><button class="b alt" id="fStop" disabled>Stop</button></div>
+      <p class="hint">Needs a vision-capable Gemma (for example <code>gemma3:4b</code> or larger).</p>
+      <div class="out" id="fOut"></div>
+      <div id="fList"></div>
+    </div>
+  </div>
+</section>
+
+<!-- STORY -->
+<section id="story">
+  <div class="band"><div><h2>Wind down</h2><p>A slow story and a steady hum. Works offline.</p></div><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M50 38A22 22 0 1126 14a18 18 0 0024 24z"/><path d="M46 8v8M42 12h8"/></svg></div>
+  <div class="body">
+    <div class="pane">
+      <label for="sTheme">What should the story be about?</label>
+      <input type="text" id="sTheme" value="a sloth who takes the long way to a mango tree">
+      <div class="row">
+        <select id="sLen" aria-label="Length" style="width:auto"><option value="250">Short (about 250 words)</option><option value="500" selected>Medium (about 500 words)</option><option value="800">Long (about 800 words)</option></select>
+        <button class="b" id="sGo">Tell me a story</button><button class="b alt" id="sStop" disabled>Stop</button>
+      </div>
+      <div class="out story" id="sOut"></div>
+      <div class="row"><button class="b hot" id="sSpeak">Read aloud</button><button class="b alt" id="sQuiet">Stop reading</button></div>
+    </div>
+    <div class="pane">
+      <h3>Ambient sound</h3>
+      <div class="row">
+        <select id="aKind" aria-label="Sound" style="width:auto"><option value="rain">Rain</option><option value="ocean">Ocean</option><option value="forest">Forest wind</option></select>
+        <button class="b" id="aGo">Play</button>
+        <label for="aVol" style="margin:0">Volume</label><input type="range" id="aVol" min="0" max="1" step=".01" value=".35">
+      </div>
+      <p class="hint">Generated in your browser. No audio files, no internet.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TIDY -->
+<section id="tidy">
+  <div class="band"><div><h2>File tidier</h2><p>The model plans it. You run the script when you feel like it.</p></div><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M6 14h18l5 6h29v34H6z"/><path d="M6 26h52"/></svg></div>
+  <div class="body">
+    <div class="pane">
+      <label for="tFiles">Choose the files to tidy (only names are read; nothing is uploaded)</label>
+      <input type="file" id="tFiles" multiple>
+      <label for="tNames">…or paste file names, one per line</label>
+      <textarea id="tNames" style="min-height:110px" placeholder="IMG_2231.jpg&#10;invoice final FINAL v2.pdf&#10;Screenshot 2026-03-01 at 10.22.png"></textarea>
+      <div class="row"><button class="b" id="tGo">Plan it</button><button class="b alt" id="tSh" disabled>Download .sh</button><button class="b alt" id="tPs" disabled>Download .ps1</button></div>
+      <p class="hint" id="tMsg"></p>
+      <div id="tOut"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SETUP -->
+<section id="setup">
+  <div class="band"><div><h2>Setup</h2><p>Point Pigritia at your Ollama.</p></div><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 18h44M10 32h44M10 46h44"/><circle cx="22" cy="18" r="5"/><circle cx="42" cy="32" r="5"/><circle cx="28" cy="46" r="5"/></svg></div>
+  <div class="body">
+    <div class="pane">
+      <label for="cUrl">Ollama address</label>
+      <input type="url" id="cUrl" value="http://localhost:11434">
+      <label for="cModel">Model</label>
+      <select id="cModel"></select>
+      <div class="row"><button class="b" id="cSave">Save and check</button></div>
+      <p class="hint" id="cMsg"></p>
+    </div>
+    <div class="pane">
+      <h3>First-time steps</h3>
+      <ol>
+        <li>Pull a model: <code>ollama pull gemma3</code></li>
+        <li>Allow this page to talk to Ollama. Quit Ollama, then start it with the origin allowed:<br>
+          macOS/Linux: <code>OLLAMA_ORIGINS="*" ollama serve</code><br>
+          Windows (PowerShell): <code>$env:OLLAMA_ORIGINS="*"; ollama serve</code></li>
+        <li>Open this file, press Save and check.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+</main>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const ls={get(k,d){try{return localStorage.getItem(k)??d}catch{return d}},set(k,v){try{localStorage.setItem(k,v);return true}catch{return false}}};
+let cfg={url:ls.get('pg.url','http://localhost:11434'),model:ls.get('pg.model','gemma3')};
+
+/* navigation */
+function go(id){
+  $$('section').forEach(s=>s.classList.toggle('on',s.id===id));
+  $$('nav a').forEach(a=>a.classList.toggle('on',a.dataset.go===id));
+  $('main').scrollTop=0; ls.set('pg.page',id);
+}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-go]');if(t)go(t.dataset.go)});
+$$('nav a').forEach(a=>a.tabIndex=0);
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('nav a')){e.preventDefault();go(e.target.dataset.go)}});
+
+/* Ollama client */
+let ctl=null;
+async function chat(messages,{onToken,json=false,signal}={}){
+  const res=await fetch(cfg.url.replace(/\/$/,'')+'/api/chat',{method:'POST',signal,headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:cfg.model,messages,stream:!json,...(json?{format:'json'}:{}),options:{temperature:json?0.1:0.7}})});
+  if(!res.ok){const t=await res.text();throw new Error(res.status+' '+t.slice(0,200))}
+  if(json){const d=await res.json();return d.message.content}
+  const rd=res.body.getReader(),dec=new TextDecoder();let buf='',all='';
+  for(;;){const {done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});
+    const lines=buf.split('\n');buf=lines.pop();
+    for(const l of lines){if(!l.trim())continue;const j=JSON.parse(l);if(j.error)throw new Error(j.error);const c=j.message?.content||'';all+=c;onToken&&onToken(c,all)}}
+  return all;
+}
+function friendly(e){
+  if(e.name==='AbortError')return 'Stopped.';
+  if(/Failed to fetch|NetworkError|Load failed/i.test(e.message))return 'Cannot reach Ollama at '+cfg.url+'. Start it with OLLAMA_ORIGINS="*" ollama serve (see Setup).';
+  if(/not found/i.test(e.message))return 'Model “'+cfg.model+'” is not installed. Run: ollama pull '+cfg.model;
+  return e.message;
+}
+/* generic streaming runner */
+async function run(btn,stopBtn,out,messages,{asHtml,done}={}){
+  ctl=new AbortController();btn.disabled=true;stopBtn.disabled=false;out.classList.remove('err');out.textContent='Thinking slowly…';
+  try{
+    const text=await chat(messages,{signal:ctl.signal,onToken:(c,all)=>{out.textContent=all}});
+    done&&done(text);
+  }catch(e){out.textContent=friendly(e);out.classList.add('err')}
+  btn.disabled=false;stopBtn.disabled=true;
+}
+function wire(stopBtn){stopBtn.onclick=()=>ctl&&ctl.abort()}
+
+/* connection status + models */
+async function check(){
+  try{
+    const r=await fetch(cfg.url.replace(/\/$/,'')+'/api/tags');const d=await r.json();
+    const names=(d.models||[]).map(m=>m.name);
+    const sel=$('#cModel');sel.innerHTML='';
+    names.forEach(n=>sel.add(new Option(n,n)));
+    if(!names.includes(cfg.model)){const m=names.find(n=>n.startsWith(cfg.model))||names.find(n=>/gemma/i.test(n))||names[0];if(m){cfg.model=m;ls.set('pg.model',m)}}
+    sel.value=cfg.model;
+    $('#dot').className='dot ok';$('#stat').textContent='Ollama · '+cfg.model;
+    $('#cMsg').textContent=names.length?'Connected. '+names.length+' model(s) found.':'Connected, but no models installed. Run: ollama pull gemma3';
+    return true;
+  }catch{
+    $('#dot').className='dot';$('#stat').textContent='Ollama offline';
+    $('#cMsg').textContent='Cannot reach '+cfg.url+'. Start Ollama with OLLAMA_ORIGINS="*" ollama serve.';
+    return false;
+  }
+}
+$('#cUrl').value=cfg.url;
+$('#cSave').onclick=()=>{cfg.url=$('#cUrl').value.trim()||'http://localhost:11434';cfg.model=$('#cModel').value||cfg.model;ls.set('pg.url',cfg.url);ls.set('pg.model',cfg.model);check()};
+$('#cModel').onchange=()=>{cfg.model=$('#cModel').value;ls.set('pg.model',cfg.model);$('#stat').textContent='Ollama · '+cfg.model};
+
+/* autopilot */
+wire($('#pStop'));let P=null;
+$('#pFile').onchange=async e=>{const f=e.target.files[0];if(f)$('#pIn').value=await f.text()};
+$('#pGo').onclick=async()=>{
+  const t=$('#pIn').value.trim();if(!t){$('#pMsg').textContent='Paste some text first.';return}
+  ctl=new AbortController();$('#pGo').disabled=true;$('#pStop').disabled=false;$('#pMsg').classList.remove('err');$('#pMsg').textContent='Thinking slowly…';
+  const today=new Date().toISOString().slice(0,10);
+  try{
+    const raw=await chat([
+     {role:'system',content:'Today is '+today+'. You are an assistant that triages messy text (emails, meeting notes or chats). Reply with JSON only in this shape: {"summary":"two short sentences","priority":"urgent|normal|low","questions":["things the reader must answer"],"tasks":[{"task":"imperative action","owner":"person or You","due":"YYYY-MM-DD or empty string"}],"reply":"a ready-to-send reply written for the reader to send, tone: '+$('#pTone').value+'"}. Resolve relative dates like "Friday" using today\'s date. Only list tasks that are really in the text.'},
+     {role:'user',content:t.slice(-24000)}],{json:true,signal:ctl.signal});
+    P=JSON.parse(raw);renderAuto();$('#pMsg').textContent='';
+  }catch(e){$('#pMsg').textContent=friendly(e);$('#pMsg').classList.add('err')}
+  $('#pGo').disabled=false;$('#pStop').disabled=true;
+};
+function renderAuto(){
+  $('#pRes').style.display='block';
+  $('#pSum').textContent=P.summary||'';
+  const pr=['urgent','low'].includes(P.priority)?P.priority:'normal';
+  const pill=$('#pPri');pill.textContent=pr;pill.className='pill '+pr;
+  const q=$('#pQ');q.innerHTML='';
+  (P.questions&&P.questions.length?P.questions:['Nothing pending.']).forEach(x=>{const d=document.createElement('div');d.className='chk';d.textContent='• '+x;q.append(d)});
+  const tk=$('#pTasks');tk.innerHTML='';
+  P.tasks=(P.tasks||[]).filter(x=>x&&x.task);
+  if(!P.tasks.length)tk.textContent='No tasks found.';
+  P.tasks.forEach(x=>{
+    const l=document.createElement('label'),c=document.createElement('input'),sp=document.createElement('span');
+    l.className='chk';c.type='checkbox';
+    sp.textContent=x.task+(x.owner?' — '+x.owner:'')+(x.due?' (due '+x.due+')':'');
+    l.append(c,sp);tk.append(l);
+  });
+  $('#pReply').value=P.reply||'';
+}
+function ics(){
+  const d=P.tasks.filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x.due||''));
+  if(!d.length)return null;
+  const esc=v=>String(v).replace(/[\\;,]/g,m=>'\\'+m).replace(/\n/g,'\\n');
+  const stamp=new Date().toISOString().replace(/[-:]|\.\d+/g,'');
+  return 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Pigritia//EN\r\n'+d.map((x,i)=>{
+    const a=x.due.replace(/-/g,''),n=new Date(x.due+'T00:00:00Z');n.setUTCDate(n.getUTCDate()+1);
+    return 'BEGIN:VEVENT\r\nUID:pigritia-'+Date.now()+'-'+i+'@local\r\nDTSTAMP:'+stamp+'\r\nDTSTART;VALUE=DATE:'+a+'\r\nDTEND;VALUE=DATE:'+n.toISOString().slice(0,10).replace(/-/g,'')+'\r\nSUMMARY:'+esc(x.task+(x.owner?' ('+x.owner+')':''))+'\r\nEND:VEVENT\r\n'}).join('')+'END:VCALENDAR\r\n';
+}
+$('#pIcs').onclick=()=>{const t=ics();if(!t){$('#pMsg').textContent='No tasks have a due date, so there is nothing to put on a calendar.';return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/calendar'}));a.download='pigritia-tasks.ics';a.click()};
+$('#pMd').onclick=()=>navigator.clipboard&&navigator.clipboard.writeText(P.tasks.map(x=>'- [ ] '+x.task+(x.owner?' — '+x.owner:'')+(x.due?' (due '+x.due+')':'')).join('\n'));
+$('#pCopy').onclick=()=>navigator.clipboard&&navigator.clipboard.writeText($('#pReply').value);
+
+/* fridge */
+let fImg=null;wire($('#fStop'));
+$('#fFile').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const img=new Image();img.onload=()=>{
+    const s=Math.min(1,1024/Math.max(img.width,img.height)),c=document.createElement('canvas');
+    c.width=img.width*s;c.height=img.height*s;c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    const url=c.toDataURL('image/jpeg',.85);fImg=url.split(',')[1];
+    const p=$('#fPrev');p.src=url;p.style.display='block';
+  };img.src=URL.createObjectURL(f);
+};
+$('#fGo').onclick=()=>{
+  if(!fImg){$('#fOut').textContent='Choose a photo first.';return}
+  $('#fList').innerHTML='';
+  const note=$('#fNote').value.trim();
+  run($('#fGo'),$('#fStop'),$('#fOut'),[{role:'user',images:[fImg],content:
+   'Look at this fridge/pantry photo. First list what you can see under the heading "Have:". Then under "Buy:" list groceries to buy'+(note?' for this plan: '+note:' to make a few simple meals from what is there')+
+   '. Put each item to buy on its own line starting with "- ". Be brief and do not repeat items.'}],
+   {done:t=>{
+     const buy=t.split(/Buy:/i)[1]||t;
+     const items=[...buy.matchAll(/^\s*[-*•]\s*(.+)$/gm)].map(m=>m[1].replace(/\*+/g,'').trim()).filter(Boolean);
+     $('#fList').innerHTML='<h3 style="margin-top:18px">Shopping checklist</h3>'+items.map((x,i)=>'<label class="chk"><input type="checkbox"><span></span></label>').join('');
+     $$('#fList .chk span').forEach((s,i)=>s.textContent=items[i]);
+   }});
+};
+
+/* story + speech */
+wire($('#sStop'));
+$('#sGo').onclick=()=>{
+  speechSynthesis.cancel();
+  run($('#sGo'),$('#sStop'),$('#sOut'),[
+   {role:'system',content:'You write gentle bedtime stories for adults. Slow pace, soft sensory detail, no conflict, no cliffhangers. Finish with the character falling asleep. No title, no preamble.'},
+   {role:'user',content:'Write a story of about '+$('#sLen').value+' words about: '+$('#sTheme').value}]);
+};
+$('#sSpeak').onclick=()=>{
+  const t=$('#sOut').textContent.trim();if(!t||!('speechSynthesis'in window))return;
+  speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=.82;u.pitch=.9;speechSynthesis.speak(u);
+};
+$('#sQuiet').onclick=()=>speechSynthesis.cancel();
+
+/* ambient sound (Web Audio, fully offline) */
+let A=null;
+function noiseBuf(ctx,type){
+  const n=ctx.sampleRate*4,b=ctx.createBuffer(1,n,ctx.sampleRate),d=b.getChannelData(0);let last=0;
+  for(let i=0;i<n;i++){const w=Math.random()*2-1;if(type==='brown'){last=(last+.02*w)/1.02;d[i]=last*3.5}else d[i]=w}
+  return b;
+}
+function startAmbient(kind){
+  const ctx=new (window.AudioContext||window.webkitAudioContext)();
+  const src=ctx.createBufferSource();src.buffer=noiseBuf(ctx,kind==='rain'?'white':'brown');src.loop=true;
+  const f=ctx.createBiquadFilter(),g=ctx.createGain();g.gain.value=+$('#aVol').value;
+  const lfoG=ctx.createGain();
+  if(kind==='rain'){f.type='highpass';f.frequency.value=1200;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=7000;src.connect(f);f.connect(lp);lp.connect(lfoG)}
+  else{f.type='lowpass';f.frequency.value=kind==='ocean'?500:300;src.connect(f);f.connect(lfoG)}
+  lfoG.gain.value=1;lfoG.connect(g);g.connect(ctx.destination);
+  let lfo=null;
+  if(kind!=='rain'){lfo=ctx.createOscillator();lfo.frequency.value=kind==='ocean'?.11:.05;const lg=ctx.createGain();lg.gain.value=.4;lfo.connect(lg);lg.connect(lfoG.gain);lfoG.gain.value=.6;lfo.start()}
+  src.start();return {ctx,g,stop(){src.stop();lfo&&lfo.stop();ctx.close()}};
+}
+$('#aGo').onclick=()=>{
+  if(A){A.stop();A=null;$('#aGo').textContent='Play';return}
+  A=startAmbient($('#aKind').value);$('#aGo').textContent='Stop';
+};
+$('#aVol').oninput=()=>{if(A)A.g.gain.value=+$('#aVol').value};
+$('#aKind').onchange=()=>{if(A){A.stop();A=startAmbient($('#aKind').value)}};
+
+/* file tidier */
+let plan=[];
+$('#tFiles').onchange=e=>{$('#tNames').value=[...e.target.files].map(f=>f.name).join('\n')};
+function q(s){return "'"+s.replace(/'/g,"'\\''")+"'"}
+$('#tGo').onclick=async()=>{
+  const names=$('#tNames').value.split('\n').map(s=>s.trim()).filter(Boolean).slice(0,200);
+  if(!names.length){$('#tMsg').textContent='Add some file names first.';return}
+  $('#tMsg').textContent='Planning…';$('#tMsg').classList.remove('err');$('#tOut').innerHTML='';$('#tSh').disabled=$('#tPs').disabled=true;
+  try{
+    const raw=await chat([
+      {role:'system',content:'You organise files. Given file names, reply with JSON only: {"files":[{"from":"original name","to":"clean new name keeping the extension","folder":"one short folder name such as Photos, Invoices, Screenshots, Documents, Music, Video, Archives, Code, Other"}]}. Use lowercase-with-dashes names, put a date at the start when the name contains one (YYYY-MM-DD), and never change extensions. Include every input file exactly once.'},
+      {role:'user',content:JSON.stringify(names)}],{json:true});
+    const data=JSON.parse(raw);plan=(data.files||[]).filter(x=>names.includes(x.from)&&x.to&&x.folder);
+    plan.forEach(x=>{x.to=x.to.replace(/[\\\/:*?"<>|]/g,'-');x.folder=x.folder.replace(/[\\\/:*?"<>|]/g,'-')});
+    if(!plan.length)throw new Error('The model returned no usable plan. Try again or use a larger model.');
+    $('#tOut').innerHTML='<table><tr><th>From</th><th>To</th></tr>'+plan.map(x=>'<tr><td></td><td></td></tr>').join('')+'</table>';
+    $$('#tOut tr').slice(1).forEach((tr,i)=>{tr.cells[0].textContent=plan[i].from;tr.cells[1].textContent=plan[i].folder+'/'+plan[i].to});
+    $('#tMsg').textContent=plan.length+' files planned. Run the script from inside the folder holding the files.';
+    $('#tSh').disabled=$('#tPs').disabled=false;
+  }catch(e){$('#tMsg').textContent=friendly(e);$('#tMsg').classList.add('err')}
+};
+function dl(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'}));a.download=name;a.click()}
+$('#tSh').onclick=()=>dl('tidy.sh','#!/bin/sh\n'+[...new Set(plan.map(x=>x.folder))].map(f=>'mkdir -p '+q(f)).join('\n')+'\n'+plan.map(x=>'mv -n '+q(x.from)+' '+q(x.folder+'/'+x.to)).join('\n')+'\n');
+$('#tPs').onclick=()=>{const p=s=>"'"+s.replace(/'/g,"''")+"'";dl('tidy.ps1',[...new Set(plan.map(x=>x.folder))].map(f=>'New-Item -ItemType Directory -Force -Path '+p(f)+' | Out-Null').join('\r\n')+'\r\n'+plan.map(x=>'Move-Item -LiteralPath '+p(x.from)+' -Destination '+p(x.folder+'/'+x.to)).join('\r\n')+'\r\n')};
+
+go(ls.get('pg.page','home'));check();
+</script>
+</body>
+</html>
