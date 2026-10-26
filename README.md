@@ -23,7 +23,6 @@ The name comes from the Latin *pigritia*, meaning sloth, in the laziness sense. 
 - [Limitations](#limitations)
 - [Customising](#customising)
 - [Project structure](#project-structure)
-- [License](#license)
 
 ---
 
@@ -297,11 +296,3 @@ pigritia/
 ├── pigritia.html   # the entire app: markup, styles and script
 └── README.md
 ```
-
----
-
-## License
-
-Choose a license for your repository and add a `LICENSE` file. MIT is a common choice for small open-source projects like this one.
-
-Models are governed by their own terms. Check the Gemma terms of use for the version you pull.
